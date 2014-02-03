@@ -656,8 +656,26 @@ program define binscatter, eclass sortpreserve
 	
 	* Prepare y-axis title
 	if (`ynum'==1) local ytitle : var label `y_vars'
-	else if (`ynum'==2) local ytitle : subinstr local y_vars " " " and "
-	else local ytitle : subinstr local y_vars " " "; ", all
+	else if (`ynum'==2) {
+		local firstloop "yes"
+		foreach y_var of varlist `y_vars' {
+			local y_varlabel : var label `y_var'
+			if ("`y_varlabel'" == "") local y_varlabel `y_var'
+			if ("`firstloop'" == "yes") local ytitle `y_varlabel'
+			else local ytitle `ytitle' and `y_varlabel'
+			local firstloop "no"
+		}
+	}
+	else {
+		local firstloop "yes"
+		foreach y_var of varlist `y_vars' {
+			local y_varlabel : var label `y_var'
+			if ("`y_varlabel'" == "") local y_varlabel `y_var'
+			if ("`firstloop'" == "yes") local ytitle `y_varlabel'
+			else local ytitle `ytitle', `y_varlabel'
+			local firstloop "no"
+		}
+	}
 	
 	* Prepare x-axis title
 	local xtitle : var label `x_var'
