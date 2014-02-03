@@ -521,12 +521,17 @@ program define binscatter, eclass sortpreserve
 		
 		local xind=`counter_by'*2-1
 		local yind=`counter_by'*2
+		
+		if ("`by'"!="") local byvarlabel : var label `byvarname'
+		if ("`byvarlabel'"=="") local byvarlabel `byvarname'
 
 		* LOOP over y-vars
 		local counter_depvar=0
 		foreach depvar of varlist `y_vars' {
 			local ++counter_depvar
 			local ++c
+			local ylabel : var label `depvar'
+			if ("`ylabel'"=="") local ylabel `depvar'
 			
 			* LOOP over rows (each row contains a coordinate pair)
 			local row=1
@@ -563,7 +568,7 @@ program define binscatter, eclass sortpreserve
 			* Add legend
 			if "`by'"=="" {
 				if (`ynum'==1) local legend_labels off
-				else local legend_labels `legend_labels' lab(`counter_series' `depvar')
+				else local legend_labels `legend_labels' lab(`counter_series' "`ylabel'")
 			}
 			else {
 				if ("`bylabel'"=="") local byvalname=`byval'
@@ -571,8 +576,8 @@ program define binscatter, eclass sortpreserve
 					local byvalname `: label `bylabel' `byval''
 				}
 			
-				if (`ynum'==1) local legend_labels `legend_labels' lab(`counter_series' `byvarname'=`byvalname')
-				else local legend_labels `legend_labels' lab(`counter_series' `depvar': `byvarname'=`byvalname')
+				if (`ynum'==1) local legend_labels `legend_labels' lab(`counter_series' "`byvarlabel'=`byvalname'")
+				else local legend_labels `legend_labels' lab(`counter_series' "`ylabel': `byvarlabel'=`byvalname'")
 			}
 			if ("`by'"!="" | `ynum'>1) local order `order' `counter_series'
 			
@@ -650,13 +655,17 @@ program define binscatter, eclass sortpreserve
 	}
 	
 	* Prepare y-axis title
-	if (`ynum'==1) local ytitle `y_vars'
+	if (`ynum'==1) local ytitle : var label `y_vars'
 	else if (`ynum'==2) local ytitle : subinstr local y_vars " " " and "
 	else local ytitle : subinstr local y_vars " " "; ", all
+	
+	* Prepare x-axis title
+	local xtitle : var label `x_var'
+	if ("`xtitle'"="") local xtitle `x_var'
 
 	* Display graph
-	local graphcmd twoway `scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
-	if ("`savedata'"!="") local savedata_graphcmd twoway `savedata_scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
+	local graphcmd twoway `scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle("`xtitle'") ytitle("`ytitle'") legend(`legend_labels' order(`order')) `options'
+	if ("`savedata'"!="") local savedata_graphcmd twoway `savedata_scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle("`xtitle'") ytitle("`ytitle'") legend(`legend_labels' order(`order')) `options'
 	`graphcmd'
 	
 	****** Save results ******
